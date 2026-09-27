@@ -1,0 +1,229 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local TARGET_POS = Vector3.new(-461.5, 2.0, 140.0)
+
+local GUI_NAME = "Bakhivc_LMT_Gui"
+local parentGui = (RunService:IsStudio() and LocalPlayer:WaitForChild("PlayerGui")) or CoreGui
+
+if parentGui:FindFirstChild(GUI_NAME) then
+    parentGui[GUI_NAME]:Destroy()
+end
+
+if workspace:FindFirstChild("VisualBlock_bakhivc") then
+    workspace["VisualBlock_bakhivc"]:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = GUI_NAME
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = parentGui
+
+local introFrame = Instance.new("Frame")
+introFrame.Name = "IntroFrame"
+introFrame.Size = UDim2.new(1, 0, 1, 0)
+introFrame.Position = UDim2.new(0, 0, 0, 0)
+introFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+introFrame.BorderSizePixel = 0
+introFrame.ZIndex = 100
+introFrame.Parent = screenGui
+
+local eyeImage = Instance.new("ImageLabel")
+eyeImage.Name = "EyeImage"
+eyeImage.Size = UDim2.new(0, 130, 0, 130)
+eyeImage.Position = UDim2.new(0.5, 0, 0.38, 0)
+eyeImage.AnchorPoint = Vector2.new(0.5, 0.5)
+eyeImage.BackgroundTransparency = 1
+eyeImage.Image = "rbxassetid://6031075931"
+eyeImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+eyeImage.ZIndex = 101
+eyeImage.Parent = introFrame
+
+local titleText = Instance.new("TextLabel")
+titleText.Name = "TitleText"
+titleText.Size = UDim2.new(0, 400, 0, 50)
+titleText.Position = UDim2.new(0.5, 0, 0.55, 0)
+titleText.AnchorPoint = Vector2.new(0.5, 0.5)
+titleText.BackgroundTransparency = 1
+titleText.Text = "bakhivc vs LMT"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextSize = 32
+titleText.Font = Enum.Font.SourceSansBold
+titleText.ZIndex = 101
+titleText.Parent = introFrame
+
+local authorText = Instance.new("TextLabel")
+authorText.Name = "AuthorText"
+authorText.Size = UDim2.new(0, 300, 0, 30)
+authorText.Position = UDim2.new(0.5, 0, 0.65, 0)
+authorText.AnchorPoint = Vector2.new(0.5, 0.5)
+authorText.BackgroundTransparency = 1
+authorText.Text = "by thanhz2867"
+authorText.TextColor3 = Color3.fromRGB(180, 180, 180)
+authorText.TextSize = 22
+authorText.Font = Enum.Font.SourceSansItalic
+authorText.ZIndex = 101
+authorText.Parent = introFrame
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 230, 0, 150)
+mainFrame.Position = UDim2.new(0.5, -115, 0.4, -75)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 10)
+uiCorner.Parent = mainFrame
+
+local guiTitle = Instance.new("TextLabel")
+guiTitle.Size = UDim2.new(1, 0, 0, 30)
+guiTitle.BackgroundTransparency = 1
+guiTitle.Text = "bakhivc / LMT"
+guiTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+guiTitle.TextSize = 18
+guiTitle.Font = Enum.Font.SourceSansBold
+guiTitle.Parent = mainFrame
+
+local timerLabel = Instance.new("TextLabel")
+timerLabel.Name = "TimerLabel"
+timerLabel.Size = UDim2.new(1, 0, 0, 25)
+timerLabel.Position = UDim2.new(0, 0, 0, 30)
+timerLabel.BackgroundTransparency = 1
+timerLabel.Text = "Trạng thái: Sẵn sàng"
+timerLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+timerLabel.TextSize = 14
+timerLabel.Font = Enum.Font.SourceSans
+timerLabel.Parent = mainFrame
+
+local farmBtn = Instance.new("TextButton")
+farmBtn.Name = "FarmButton"
+farmBtn.Size = UDim2.new(0, 190, 0, 45)
+farmBtn.Position = UDim2.new(0.5, -95, 0.5, 10)
+farmBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+farmBtn.Text = "Auto Farm"
+farmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+farmBtn.TextSize = 18
+farmBtn.Font = Enum.Font.SourceSansBold
+farmBtn.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 8)
+btnCorner.Parent = farmBtn
+
+local isFarming = false
+local visualPart = nil
+local farmThread = nil
+
+local function setCharacterFreeze(freeze)
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = freeze
+        end
+    end
+end
+
+local function updateVisualPart()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if not visualPart or not visualPart.Parent then
+        visualPart = Instance.new("Part")
+        visualPart.Name = "VisualBlock_bakhivc"
+        visualPart.Size = Vector3.new(15, 3, 15)
+        visualPart.Anchored = true
+        visualPart.CanCollide = true
+        visualPart.Material = Enum.Material.ForceField
+        visualPart.Color = Color3.fromRGB(0, 255, 255)
+        visualPart.Transparency = 0.4
+        visualPart.Parent = workspace
+    end
+
+    visualPart.CFrame = hrp.CFrame * CFrame.new(0, 4, 0)
+end
+
+local function removeVisualPart()
+    if visualPart then
+        visualPart:Destroy()
+        visualPart = nil
+    end
+end
+
+local function stopFarm()
+    isFarming = false
+    farmBtn.Text = "Auto Farm"
+    farmBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+    timerLabel.Text = "Trạng thái: Đã dừng"
+    timerLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+
+    if farmThread then
+        task.cancel(farmThread)
+        farmThread = nil
+    end
+
+    setCharacterFreeze(false)
+    removeVisualPart()
+end
+
+farmBtn.MouseButton1Click:Connect(function()
+    if isFarming then
+        stopFarm()
+    else
+        isFarming = true
+        farmBtn.Text = "Stop Farm"
+        farmBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+
+        farmThread = task.spawn(function()
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart", 5)
+
+            if hrp then
+                -- Dịch chuyển nhân vật đến vị trí
+                hrp.CFrame = CFrame.new(TARGET_POS)
+                setCharacterFreeze(true)
+                updateVisualPart()
+
+                -- Giữ trạng thái Teleport Hold liên tục
+                while isFarming do
+                    timerLabel.Text = "Đang Hold TP..."
+                    timerLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+                    task.wait(0.5)
+                end
+            end
+        end)
+    end
+end)
+
+LocalPlayer.CharacterRemoving:Connect(function()
+    stopFarm()
+end)
+
+task.delay(2.5, function()
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local fadeIntro = TweenService:Create(introFrame, tweenInfo, {BackgroundTransparency = 1})
+    
+    TweenService:Create(eyeImage, tweenInfo, {ImageTransparency = 1}):Play()
+    TweenService:Create(titleText, tweenInfo, {TextTransparency = 1}):Play()
+    TweenService:Create(authorText, tweenInfo, {TextTransparency = 1}):Play()
+    
+    fadeIntro:Play()
+    fadeIntro.Completed:Connect(function()
+        introFrame:Destroy()
+        mainFrame.Visible = true
+    end)
+end)
