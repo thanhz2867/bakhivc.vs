@@ -5,19 +5,44 @@ local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
-local TARGET_POS = Vector3.new(-461.5, 2.0, 140.0)
-
 local GUI_NAME = "Bakhivc_LMT_Gui"
 local parentGui = (RunService:IsStudio() and LocalPlayer:WaitForChild("PlayerGui")) or CoreGui
 
+-- Dọn dẹp script cũ nếu đang chạy
 if parentGui:FindFirstChild(GUI_NAME) then
     parentGui[GUI_NAME]:Destroy()
 end
-
 if workspace:FindFirstChild("VisualBlock_bakhivc") then
     workspace["VisualBlock_bakhivc"]:Destroy()
 end
 
+-- Biến lưu scale GUI toàn cục
+_G.BakhivcGuiScale = _G.BakhivcGuiScale or 1.0
+
+-- Dữ liệu 7 Land
+local ISLANDS = {
+    { Name = "Land 7", Level = "Nivel 7", P1 = Vector3.new(-319.7, 19703.4, 96.1), P2 = Vector3.new(-417.2, 19682.0, -37.5) },
+    { Name = "Land 6", Level = "Nivel 6", P1 = Vector3.new(-349.0, 14237.7, 49.6), P2 = Vector3.new(-456.7, 14219.2, 82.2) },
+    { Name = "Land 5", Level = "Nivel 5", P1 = Vector3.new(-411.7, 10288.5, 170.2), P2 = Vector3.new(-385.4, 10285.0, 16.4) },
+    { Name = "Land 4", Level = "Nivel 4", P1 = Vector3.new(-375.1, 6508.7, 132.7), P2 = Vector3.new(-466.4, 6480.7, 132.5) },
+    { Name = "Land 3", Level = "Nivel 3", P1 = Vector3.new(-517.9, 4030.7, 113.5), P2 = Vector3.new(-437.0, 4030.5, 45.6) },
+    { Name = "Land 2", Level = "Nivel 2", P1 = Vector3.new(-480.5, 2224.2, 120.7), P2 = Vector3.new(-481.6, 2227.9, 92.9) },
+    { Name = "Land 1", Level = "Nivel 1", P1 = Vector3.new(-337.0, 547.9, 30.1), P2 = Vector3.new(-392.0, 581.4, 33.5) },
+}
+
+-- Danh sách bãi Farm (Cùng độ cao Y = 2.0)
+local FARM_SPOTS = {
+    Vector3.new(-461.5, 2.0, 140.0),
+    Vector3.new(-502.8, 2.0, 80.9),
+    Vector3.new(-490.8, 2.0, 7.9),
+    Vector3.new(-432.5, 2.0, -30.9),
+    Vector3.new(-360.4, 2.0, -19.0),
+    Vector3.new(-318.4, 2.0, 36.8),
+    Vector3.new(-331.1, 2.0, 110.9),
+    Vector3.new(-390.2, 2.0, 151.3)
+}
+
+-- Tạo ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = GUI_NAME
 screenGui.ResetOnSpawn = false
@@ -25,6 +50,9 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = parentGui
 
+---------------------------------------------------------
+-- INTRO FRAME
+---------------------------------------------------------
 local introFrame = Instance.new("Frame")
 introFrame.Name = "IntroFrame"
 introFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -71,69 +99,293 @@ authorText.Font = Enum.Font.SourceSansItalic
 authorText.ZIndex = 101
 authorText.Parent = introFrame
 
+---------------------------------------------------------
+-- NÚT BK (BẬT/TẮT MENU MAIN)
+---------------------------------------------------------
+local toggleMenuBtn = Instance.new("TextButton")
+toggleMenuBtn.Name = "BK_MenuButton"
+toggleMenuBtn.Size = UDim2.new(0, 45, 0, 45)
+toggleMenuBtn.Position = UDim2.new(0, 15, 0.45, 0)
+toggleMenuBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+toggleMenuBtn.Text = "BK"
+toggleMenuBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleMenuBtn.TextSize = 18
+toggleMenuBtn.Font = Enum.Font.SourceSansBold
+toggleMenuBtn.Active = true
+toggleMenuBtn.Draggable = true
+toggleMenuBtn.Visible = false
+toggleMenuBtn.Parent = screenGui
+
+local menuCorner = Instance.new("UICorner")
+menuCorner.CornerRadius = UDim.new(1, 0)
+menuCorner.Parent = toggleMenuBtn
+
+---------------------------------------------------------
+-- MAIN GUI FRAME
+---------------------------------------------------------
+local BASE_WIDTH = 210
+local BASE_HEIGHT = 460
+
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 230, 0, 150)
-mainFrame.Position = UDim2.new(0.5, -115, 0.4, -75)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.Size = UDim2.new(0, BASE_WIDTH * _G.BakhivcGuiScale, 0, BASE_HEIGHT * _G.BakhivcGuiScale)
+mainFrame.Position = UDim2.new(0.08, 0, 0.18, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(11, 16, 28)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = false
 mainFrame.Parent = screenGui
 
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(0, 10)
-uiCorner.Parent = mainFrame
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
 
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = _G.BakhivcGuiScale
+uiScale.Parent = mainFrame
+
+-- Tiêu đề GUI
 local guiTitle = Instance.new("TextLabel")
-guiTitle.Size = UDim2.new(1, 0, 0, 30)
+guiTitle.Size = UDim2.new(0.7, 0, 0, 35)
+guiTitle.Position = UDim2.new(0.05, 0, 0, 5)
 guiTitle.BackgroundTransparency = 1
-guiTitle.Text = "bakhivc / LMT"
-guiTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-guiTitle.TextSize = 18
+guiTitle.Text = "BAKHIVC TP LMT"
+guiTitle.TextColor3 = Color3.fromRGB(0, 150, 255)
+guiTitle.TextSize = 16
 guiTitle.Font = Enum.Font.SourceSansBold
+guiTitle.TextXAlignment = Enum.TextXAlignment.Left
 guiTitle.Parent = mainFrame
 
-local timerLabel = Instance.new("TextLabel")
-timerLabel.Name = "TimerLabel"
-timerLabel.Size = UDim2.new(1, 0, 0, 25)
-timerLabel.Position = UDim2.new(0, 0, 0, 30)
-timerLabel.BackgroundTransparency = 1
-timerLabel.Text = "Trạng thái: Sẵn sàng"
-timerLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-timerLabel.TextSize = 14
-timerLabel.Font = Enum.Font.SourceSans
-timerLabel.Parent = mainFrame
+---------------------------------------------------------
+-- NÚT KHÓA KÉO (TỰ VẼ Ổ KHÓA BẰNG FRAME)
+---------------------------------------------------------
+local lockBtn = Instance.new("TextButton")
+lockBtn.Name = "LockBtn"
+lockBtn.Size = UDim2.new(0, 28, 0, 28)
+lockBtn.Position = UDim2.new(1, -34, 0, 6)
+lockBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- Mặc định XANH (Không khóa)
+lockBtn.Text = ""
+lockBtn.Parent = mainFrame
 
-local farmBtn = Instance.new("TextButton")
-farmBtn.Name = "FarmButton"
-farmBtn.Size = UDim2.new(0, 190, 0, 45)
-farmBtn.Position = UDim2.new(0.5, -95, 0.5, 10)
-farmBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-farmBtn.Text = "Auto Farm"
-farmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-farmBtn.TextSize = 18
-farmBtn.Font = Enum.Font.SourceSansBold
-farmBtn.Parent = mainFrame
+local lockBtnCorner = Instance.new("UICorner")
+lockBtnCorner.CornerRadius = UDim.new(0, 6)
+lockBtnCorner.Parent = lockBtn
 
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 8)
-btnCorner.Parent = farmBtn
+-- Thân Khóa (Lock Body)
+local lockBody = Instance.new("Frame")
+lockBody.Size = UDim2.new(0, 14, 0, 10)
+lockBody.Position = UDim2.new(0.5, -7, 0.55, -5)
+lockBody.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+lockBody.BorderSizePixel = 0
+lockBody.Parent = lockBtn
 
-local isFarming = false
-local visualPart = nil
-local farmThread = nil
+local lockBodyCorner = Instance.new("UICorner")
+lockBodyCorner.CornerRadius = UDim.new(0, 2)
+lockBodyCorner.Parent = lockBody
 
+-- Vòm Khóa (Lock Shackle - Vòng cong)
+local lockShackle = Instance.new("Frame")
+lockShackle.Size = UDim2.new(0, 10, 0, 9)
+lockShackle.Position = UDim2.new(0.5, -5, 0.22, 0)
+lockShackle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+lockShackle.BorderSizePixel = 0
+lockShackle.Parent = lockBtn
+
+local shackleCorner = Instance.new("UICorner")
+shackleCorner.CornerRadius = UDim.new(0, 5)
+shackleCorner.Parent = lockShackle
+
+-- Ruột Vòm Khóa (Làm trống bên trong vòm)
+local lockShackleInner = Instance.new("Frame")
+lockShackleInner.Size = UDim2.new(0, 6, 0, 6)
+lockShackleInner.Position = UDim2.new(0.5, -3, 0.3, 0)
+lockShackleInner.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+lockShackleInner.BorderSizePixel = 0
+lockShackleInner.Parent = lockBtn
+
+local innerShackleCorner = Instance.new("UICorner")
+innerShackleCorner.CornerRadius = UDim.new(0, 3)
+innerShackleCorner.Parent = lockShackleInner
+
+local isLocked = false
+lockBtn.MouseButton1Click:Connect(function()
+    isLocked = not isLocked
+    if isLocked then
+        mainFrame.Draggable = false
+        lockBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50) -- ĐỎ (Đã Khóa Cố Định)
+        lockShackleInner.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+        -- Dịch chuyển vòm khóa đóng xuống
+        lockShackle.Position = UDim2.new(0.5, -5, 0.28, 0)
+        lockShackleInner.Position = UDim2.new(0.5, -3, 0.34, 0)
+    else
+        mainFrame.Draggable = true
+        lockBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- XANH (Cho phép Kéo)
+        lockShackleInner.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+        -- Dịch chuyển vòm khóa mở lên
+        lockShackle.Position = UDim2.new(0.5, -5, 0.22, 0)
+        lockShackleInner.Position = UDim2.new(0.5, -3, 0.3, 0)
+    end
+end)
+
+-- Danh sách các Land
+local scrollList = Instance.new("Frame")
+scrollList.Size = UDim2.new(0.9, 0, 0, 310)
+scrollList.Position = UDim2.new(0.05, 0, 0, 40)
+scrollList.BackgroundTransparency = 1
+scrollList.Parent = mainFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 6)
+listLayout.Parent = scrollList
+
+---------------------------------------------------------
+-- CHỨC NĂNG BẬT/TẮT MENU MAIN
+---------------------------------------------------------
+toggleMenuBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        toggleMenuBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    else
+        toggleMenuBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    end
+end)
+
+---------------------------------------------------------
+-- CHỨC NĂNG ĐÓNG BĂNG / TELEPORT
+---------------------------------------------------------
 local function setCharacterFreeze(freeze)
     local char = LocalPlayer.Character
     if not char then return end
-
     for _, part in ipairs(char:GetDescendants()) do
         if part:IsA("BasePart") then
             part.Anchored = freeze
         end
     end
+end
+
+local isTeleporting = false
+local function teleportToIsland(islandData)
+    if isTeleporting then return end
+    isTeleporting = true
+
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    
+    if hrp then
+        hrp.CFrame = CFrame.new(islandData.P1)
+        task.wait(0.2)
+        hrp.CFrame = CFrame.new(islandData.P2)
+    end
+    
+    isTeleporting = false
+end
+
+-- Tạo danh sách nút Land
+for i, island in ipairs(ISLANDS) do
+    local btn = Instance.new("TextButton")
+    btn.Name = island.Name .. "Btn"
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(16, 23, 38)
+    btn.AutoButtonColor = true
+    btn.Text = ""
+    btn.Parent = scrollList
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = btn
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(0.6, -10, 1, 0)
+    nameLabel.Position = UDim2.new(0, 15, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = island.Name
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.TextSize = 15
+    nameLabel.Font = Enum.Font.SourceSansBold
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Parent = btn
+
+    local levelLabel = Instance.new("TextLabel")
+    levelLabel.Size = UDim2.new(0.4, -10, 1, 0)
+    levelLabel.Position = UDim2.new(0.6, 0, 0, 0)
+    levelLabel.BackgroundTransparency = 1
+    levelLabel.Text = island.Level
+    levelLabel.TextColor3 = Color3.fromRGB(0, 140, 230)
+    levelLabel.TextSize = 13
+    levelLabel.Font = Enum.Font.SourceSansBold
+    levelLabel.TextXAlignment = Enum.TextXAlignment.Right
+    levelLabel.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        teleportToIsland(island)
+    end)
+end
+
+---------------------------------------------------------
+-- CHỨC NĂNG AUTO FARM
+---------------------------------------------------------
+local toggleFrame = Instance.new("Frame")
+toggleFrame.Size = UDim2.new(0.9, 0, 0, 35)
+toggleFrame.Position = UDim2.new(0.05, 0, 0, 355)
+toggleFrame.BackgroundTransparency = 1
+toggleFrame.Parent = mainFrame
+
+local toggleLabel = Instance.new("TextLabel")
+toggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+toggleLabel.BackgroundTransparency = 1
+toggleLabel.Text = "Auto Farm (Gần nhất)"
+toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleLabel.TextSize = 13
+toggleLabel.Font = Enum.Font.SourceSansBold
+toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+toggleLabel.Parent = toggleFrame
+
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 40, 0, 20)
+toggleBtn.Position = UDim2.new(1, -40, 0.5, -10)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 50, 70)
+toggleBtn.Text = ""
+toggleBtn.Parent = toggleFrame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(1, 0)
+toggleCorner.Parent = toggleBtn
+
+local toggleCircle = Instance.new("Frame")
+toggleCircle.Size = UDim2.new(0, 16, 0, 16)
+toggleCircle.Position = UDim2.new(0, 2, 0.5, -8)
+toggleCircle.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+toggleCircle.Parent = toggleBtn
+
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1, 0)
+circleCorner.Parent = toggleCircle
+
+local isFarming = false
+local visualPart = nil
+local farmThread = nil
+
+local function getNearestFarmSpot()
+    local char = LocalPlayer.Character
+    if not char then return FARM_SPOTS[1] end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return FARM_SPOTS[1] end
+
+    local currentPos = hrp.Position
+    local nearestSpot = FARM_SPOTS[1]
+    local minDistance = math.huge
+
+    for _, spot in ipairs(FARM_SPOTS) do
+        local dist = (currentPos - spot).Magnitude
+        if dist < minDistance then
+            minDistance = dist
+            nearestSpot = spot
+        end
+    end
+
+    return nearestSpot
 end
 
 local function updateVisualPart()
@@ -166,10 +418,8 @@ end
 
 local function stopFarm()
     isFarming = false
-    farmBtn.Text = "Auto Farm"
-    farmBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-    timerLabel.Text = "Trạng thái: Đã dừng"
-    timerLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 50, 70)
+    toggleCircle.Position = UDim2.new(0, 2, 0.5, -8)
 
     if farmThread then
         task.cancel(farmThread)
@@ -180,28 +430,26 @@ local function stopFarm()
     removeVisualPart()
 end
 
-farmBtn.MouseButton1Click:Connect(function()
+toggleBtn.MouseButton1Click:Connect(function()
     if isFarming then
         stopFarm()
     else
         isFarming = true
-        farmBtn.Text = "Stop Farm"
-        farmBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        toggleCircle.Position = UDim2.new(1, -18, 0.5, -8)
 
         farmThread = task.spawn(function()
             local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart", 5)
 
             if hrp then
-                -- Dịch chuyển nhân vật đến vị trí
-                hrp.CFrame = CFrame.new(TARGET_POS)
+                local targetSpot = getNearestFarmSpot()
+                hrp.CFrame = CFrame.new(targetSpot)
+                
                 setCharacterFreeze(true)
                 updateVisualPart()
 
-                -- Giữ trạng thái Teleport Hold liên tục
                 while isFarming do
-                    timerLabel.Text = "Đang Hold TP..."
-                    timerLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
                     task.wait(0.5)
                 end
             end
@@ -213,6 +461,72 @@ LocalPlayer.CharacterRemoving:Connect(function()
     stopFarm()
 end)
 
+---------------------------------------------------------
+-- CHỨC NĂNG ĐIỀU CHỈNH SIZE GUI (+ / -)
+---------------------------------------------------------
+local sizeFrame = Instance.new("Frame")
+sizeFrame.Size = UDim2.new(0.9, 0, 0, 35)
+sizeFrame.Position = UDim2.new(0.05, 0, 0, 400)
+sizeFrame.BackgroundTransparency = 1
+sizeFrame.Parent = mainFrame
+
+local sizeLabel = Instance.new("TextLabel")
+sizeLabel.Size = UDim2.new(0.45, 0, 1, 0)
+sizeLabel.BackgroundTransparency = 1
+sizeLabel.Text = "Size GUI: " .. string.format("%.1f", _G.BakhivcGuiScale)
+sizeLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+sizeLabel.TextSize = 13
+sizeLabel.Font = Enum.Font.SourceSansBold
+sizeLabel.TextXAlignment = Enum.TextXAlignment.Left
+sizeLabel.Parent = sizeFrame
+
+local minusBtn = Instance.new("TextButton")
+minusBtn.Size = UDim2.new(0, 30, 0, 25)
+minusBtn.Position = UDim2.new(0.55, 0, 0.5, -12)
+minusBtn.BackgroundColor3 = Color3.fromRGB(25, 35, 55)
+minusBtn.Text = "-"
+minusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minusBtn.TextSize = 18
+minusBtn.Font = Enum.Font.SourceSansBold
+minusBtn.Parent = sizeFrame
+
+local minusCorner = Instance.new("UICorner")
+minusCorner.CornerRadius = UDim.new(0, 6)
+minusCorner.Parent = minusBtn
+
+local plusBtn = Instance.new("TextButton")
+plusBtn.Size = UDim2.new(0, 30, 0, 25)
+plusBtn.Position = UDim2.new(0.8, 0, 0.5, -12)
+plusBtn.BackgroundColor3 = Color3.fromRGB(25, 35, 55)
+plusBtn.Text = "+"
+plusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+plusBtn.TextSize = 18
+plusBtn.Font = Enum.Font.SourceSansBold
+plusBtn.Parent = sizeFrame
+
+local plusCorner = Instance.new("UICorner")
+plusCorner.CornerRadius = UDim.new(0, 6)
+plusCorner.Parent = plusBtn
+
+minusBtn.MouseButton1Click:Connect(function()
+    if _G.BakhivcGuiScale > 0.6 then
+        _G.BakhivcGuiScale = math.clamp(_G.BakhivcGuiScale - 0.1, 0.6, 1.6)
+        uiScale.Scale = _G.BakhivcGuiScale
+        sizeLabel.Text = "Size GUI: " .. string.format("%.1f", _G.BakhivcGuiScale)
+    end
+end)
+
+plusBtn.MouseButton1Click:Connect(function()
+    if _G.BakhivcGuiScale < 1.6 then
+        _G.BakhivcGuiScale = math.clamp(_G.BakhivcGuiScale + 0.1, 0.6, 1.6)
+        uiScale.Scale = _G.BakhivcGuiScale
+        sizeLabel.Text = "Size GUI: " .. string.format("%.1f", _G.BakhivcGuiScale)
+    end
+end)
+
+---------------------------------------------------------
+-- CHẠY INTRO & HIỂN THỊ GUI
+---------------------------------------------------------
 task.delay(2.5, function()
     local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local fadeIntro = TweenService:Create(introFrame, tweenInfo, {BackgroundTransparency = 1})
@@ -225,5 +539,6 @@ task.delay(2.5, function()
     fadeIntro.Completed:Connect(function()
         introFrame:Destroy()
         mainFrame.Visible = true
+        toggleMenuBtn.Visible = true
     end)
 end)
